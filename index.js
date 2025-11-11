@@ -1,109 +1,73 @@
-import {tweetsData} from "./data.js";
- console.log(tweetsData);
+import { v4 as uuidv4 } from "https://jspm.dev/uuid";
+import { tweetsData } from "./data.js";
+const tweetInput = document.getElementById("tweet-input");
+// const tweetBtn = document.getElementById("tweet-btn");
 
- const tweetbtn =document.getElementById("tweet-btn");
- const tweetinput = document.getElementById("tweet-input");
- const feed = document.getElementById("feed");
+document.addEventListener("click", function (e) {
+  // console.log(e.target.dataset.retweet);
+  // if (e.target.dataset.like) {
+  //   console.log(e.target.dataset.like);
+  // }
+  if (e.target.dataset.like) {
+    console.log(e);
+    // console.log(e.target.dataset.like);
+    handleLikeClick(e.target.dataset.like);
+  } else if (e.target.dataset.retweet) {
+    handleRetweetClick(e.target.dataset.retweet);
+  } else if (e.target.dataset.reply) {
+    handleReplyClick(e.target.dataset.reply);
+  } else if (e.target.id === "tweet-btn") {
+    handleTweetBtnClick();
+  }
+});
 
-
-  document.addEventListener("click",function(e){
-    if(e.target.dataset.like){
-console.log(e.target.dataset.like);
-
-handleLikeClick(e.target.dataset.like);
-
-
- } else if( e.target.dataset.reply){
-    // console.log(e.target.dataset.reply);
-    handleReplayCLick(e.target.dataset.reply)
- } else if(e.target.dataset.retweet){
-    // console.log(e.target.dataset.retweet);
-   handleRetweetClick(e.target.dataset.retweet);
-  
- }
-
-   
-   });   
-
-function handleLikeClick(tweetid){
-  
-    const targetTweetObj = tweetsData.filter(function(tweet){
-        return tweet.uuid === tweetid
-    })[0];
-    targetTweetObj.likes;
-
-    if(targetTweetObj.isLiked === false){
-        console.log( targetTweetObj.likes++)
-       targetTweetObj.isLiked = true;
-       
-    }  else {
-        console.log(targetTweetObj.likes--)
-        targetTweetObj.isLiked = false;
-    }
-    
-render();
-
-    console.log(targetTweetObj)
-    
+function handleReplyClick(replyId) {
+  document.getElementById(`replies-${replyId}`).classList.toggle("hidden");
 }
 
-function handleRetweetClick(tweetid){
-  
-    const targetTweetObj = tweetsData.filter(function(tweet){
-        return tweet.uuid === tweetid
-    })[0];
-    targetTweetObj.retweets;
+function handleTweetBtnClick() {
+  if (tweetInput.value) {
+    // console.log(tweetInput.value);
+    tweetsData.unshift({
+      handle: `@Tim Cook`,
+      profilePic: `images/catSwag.jpg`,
+      likes: 27,
+      retweets: 10,
+      tweetText: tweetInput.value,
+      replies: [],
+      isLiked: false,
+      isRetweeted: false,
+      uuid: uuidv4(),
+    });
+  }
 
-    if(targetTweetObj.isRetweeted === false){
-        console.log( targetTweetObj.retweets++)
-       targetTweetObj.isRetweeted = true;
-       
-    }  else {
-        console.log(targetTweetObj.retweets--)
-        targetTweetObj.isRetweeted = false;
-    }
-    
-render();
-
-    console.log(targetTweetObj)
-    
+  tweetInput.value = "";
+  console.log(tweetsData);
+  render();
 }
-
-function handleReplayCLick(replyId){
-    document.getElementById(`replies-${replyId}`).classList.toggle("hidden");
-}
-
-
- tweetbtn.addEventListener("click",function(){
-    console.log(tweetinput.value);
-    tweetinput.value = "";
-    
- });
- function getFeedHtml() {
-let feedHtml = "";
-tweetsData. forEach(function(tweet){
+function getFeedHtml() {
+  let feedHtml = "";
+  tweetsData.forEach(function (tweet) {
     let likeIconClass = "";
-    let retweetIcon = "";
-   if (tweet.isLiked){
-    likeIconClass = "like";
 
-   }else{
-    likeIconClass = ""
-   }
+    if (tweet.isLiked) {
+      likeIconClass = "liked";
+    }
 
+    let retweetIconClass = "";
 
-if(tweet.isRetweeted){
-    retweetIcon = "share";
-} else{
-    retweetIcon ="";
-}
+    if (tweet.isRetweeted) {
+      retweetIconClass = "retweeted";
+    }
 
+    let repliesHtml = "";
 
-let repliesHtml = "";
-
-if (tweet.replies.length > 0){
-    tweet.replies.forEach(function(reply){
-        repliesHtml +=`  <div class="tweet-reply">
+    if (tweet.replies.length > 0) {
+      tweet.replies.forEach(function (reply) {
+        // tweet = big object, replies means the array that is inside that object
+        // console.log(reply);
+        repliesHtml += `
+        <div class="tweet-reply">
         <div class="tweet-inner">
         <img src="${reply.profilePic}" class="profile-pic">
         <div>
@@ -111,50 +75,85 @@ if (tweet.replies.length > 0){
         <p >${reply.tweetText}</p>
         </div>
         </div>
-        </div>`
-    })
-}
+        </div>
+        `;
+      });
+    }
 
-
-//   for(let tweet of tweetsData){
     feedHtml += `<div class="tweet">
     <div class="tweet-inner">
         <img src="${tweet.profilePic}" class="profile-pic">
         <div>
             <p class="handle">${tweet.handle}</p>
-            <p class="tweet-text">${tweet. tweetText}</p>
+            <p class="tweet-text">${tweet.tweetText}</p>
             <div class="tweet-details">
                 <span class="tweet-detail">
                 <i class="fa-regular fa-comment-dots" data-reply="${tweet.uuid}"></i>
                     ${tweet.replies.length}
                 </span>
                 <span class="tweet-detail">
-                <i class="fa-solid fa-heart ${likeIconClass}" data-like="${tweet.uuid}"></i>
-                   ${tweet.likes}
+                <i id="likeIcon" class="fa-solid fa-heart ${likeIconClass}" data-like="${tweet.uuid}"></i>
+                    ${tweet.likes}
                 </span>
                 <span class="tweet-detail">
-                <i class="fa-solid fa-retweet ${retweetIcon}" data-retweet="${tweet.uuid}"></i>
-                   ${tweet.retweets}
+                <i class="fa-solid fa-retweet ${retweetIconClass}" data-retweet="${tweet.uuid}"></i>
+                    ${tweet.retweets}
                 </span>
             </div>   
         </div>            
     </div>
-</div>
-<div class="hidden" id="replies-${tweet.uuid}">
-${repliesHtml}
-</div>`
-               
     
-  })
-  
-return feedHtml;
- 
- 
+    <div class="hidden" id="replies-${tweet.uuid}">
+        ${repliesHtml}
+    </div>
+</div>  `;
+  });
+  return feedHtml;
 }
- function render(){
-    const post = getFeedHtml();
-    feed.innerHTML = post;
-    // console.log(post);
-    
- }
- render()
+
+function handleLikeClick(tweetID) {
+  //  console.log(tweetID)
+  const targetTweetObj = tweetsData.filter(function (tweet) {
+    return tweet.uuid === tweetID;
+  })[0];
+
+  // console.log(targetTweetObj);
+  if (targetTweetObj.isLiked) {
+    // targetTweetObj.likes = targetTweetObj.likes - 1;
+    targetTweetObj.likes--;
+    targetTweetObj.isLiked = false;
+  } else {
+    targetTweetObj.likes++;
+    targetTweetObj.isLiked = true;
+  }
+  render();
+  // console.log("Array", tweetIdObj);
+  // let tweetObjSingle = tweetIdObj[0];
+
+  // tweetObjSingle.likes += 1;
+  // console.log(tweetObjSingle);
+}
+
+function handleRetweetClick(tweetID) {
+  const targetTweetObj = tweetsData.filter(function (tweet) {
+    // console.log(tweet);
+    return tweet.uuid === tweetID;
+  })[0];
+  // console.log(targetTweetObj);
+  if (targetTweetObj.isRetweeted) {
+    //  if will run if someone has already retweeted = true and number of retweet increased and so it will decrease it and tell us i have decreased a number so retweet has become false
+    targetTweetObj.retweets--;
+    targetTweetObj.isRetweeted = false;
+  } else {
+    //  else will run if it is not retweeted or retweeted = false and number of retweet will be increased and retweeted will become true cos we increased the count.
+    targetTweetObj.retweets++;
+    targetTweetObj.isRetweeted = true;
+  }
+  render();
+}
+
+function render() {
+  document.getElementById("feed").innerHTML = getFeedHtml();
+}
+
+render();
